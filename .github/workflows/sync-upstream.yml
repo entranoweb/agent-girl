@@ -1,0 +1,154 @@
+name: Sync Upstream Fork
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 # Fetch all history for proper merge
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/KenKaiii/agent-girl.git
+          git fetch upstream
+      
+      - name: Check for changes in upstream
+        id: check_changes
+        run: |
+          # Compare local master with upstream master
+          BEHIND_COUNT=$(git rev-list --count HEAD..upstream/master)
+          echo "behind_count=$BEHIND_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ "$BEHIND_COUNT" -gt 0 ]; then
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            echo "✅ Upstream has $BEHIND_COUNT new commits"
+          else
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+            echo "✅ Already up to date with upstream"
+          fi
+      
+      - name: Attempt merge from upstream
+        if: steps.check_changes.outputs.changes_detected == 'true'
+        id: merge
+        continue-on-error: true
+        run: |
+          # Try to merge upstream/master into our master
+          git merge upstream/master --no-edit
+      
+      - name: Check for merge conflicts
+        if: steps.check_changes.outputs.changes_detected == 'true'
+        id: conflicts
+        run: |
+          if [ ${{ steps.merge.outcome }} == 'failure' ]; then
+            echo "has_conflicts=true" >> $GITHUB_OUTPUT
+            echo "❌ MERGE CONFLICTS DETECTED"
+            
+            # List conflicted files
+            echo "## Conflicted Files:" >> $GITHUB_STEP_SUMMARY
+            git diff --name-only --diff-filter=U >> $GITHUB_STEP_SUMMARY
+            
+            # Abort the merge
+            git merge --abort
+            exit 1
+          else
+            echo "has_conflicts=false" >> $GITHUB_OUTPUT
+            echo "✅ Merge successful - no conflicts"
+          fi
+      
+      - name: Run tests after merge
+        if: steps.conflicts.outputs.has_conflicts != 'true' && steps.check_changes.outputs.changes_detected == 'true'
+        run: |
+          # Install dependencies
+          curl -fsSL https://bun.sh/install | bash
+          export PATH="$HOME/.bun/bin:$PATH"
+          
+          bun install
+          
+          # Run build to verify no breaking changes
+          bun run build || {
+            echo "❌ Build failed after merge"
+            echo "## Build Failed" >> $GITHUB_STEP_SUMMARY
+            echo "The upstream changes caused build failures." >> $GITHUB_STEP_SUMMARY
+            git reset --hard HEAD~1
+            exit 1
+          }
+      
+      - name: Push changes
+        if: steps.conflicts.outputs.has_conflicts != 'true' && steps.check_changes.outputs.changes_detected == 'true'
+        run: |
+          git push origin master
+          echo "✅ Successfully synced with upstream"
+          
+          # Add summary
+          echo "## Sync Successful ✅" >> $GITHUB_STEP_SUMMARY
+          echo "Synced ${{ steps.check_changes.outputs.behind_count }} commits from upstream" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Create Issue on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🔴 Upstream Sync Failed - Manual Intervention Required';
+            const body = `## Upstream Sync Failure
+            
+            **Date:** ${new Date().toISOString()}
+            **Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            ### Issue
+            The automated sync from upstream (KenKaiii/agent-girl) failed. This could be due to:
+            
+            - ✗ Merge conflicts in core files
+            - ✗ Breaking changes in upstream
+            - ✗ Build failures after merge
+            
+            ### Action Required
+            
+            1. **Review the failed workflow:** Check the logs above
+            2. **Manual sync required:**
+               \`\`\`bash
+               git remote add upstream https://github.com/KenKaiii/agent-girl.git
+               git fetch upstream
+               git merge upstream/master
+               # Resolve conflicts manually
+               git push origin master
+               \`\`\`
+            3. **Test thoroughly** after manual merge
+            
+            ### Files to Check
+            - \`server/agents.ts\` (copy-commander integration)
+            - \`server/server.ts\` (WSL Node.js check fix)
+            - \`server/websocket/messageHandlers.ts\` (debug file path fix)
+            
+            **DO NOT CLOSE** this issue until sync is complete.`;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['upstream-sync', 'urgent']
+            });
+      
+      - name: Notify on Success
+        if: success() && steps.check_changes.outputs.changes_detected == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log('✅ Successfully synced with upstream');
+            console.log(`Merged ${process.env.BEHIND_COUNT} commits`);
+

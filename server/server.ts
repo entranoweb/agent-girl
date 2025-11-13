@@ -58,7 +58,9 @@ import type { ServerWebSocket, Server as ServerType } from "bun";
 const { isStandalone: IS_STANDALONE, binaryDir: BINARY_DIR, postcss, tailwindcss, autoprefixer } = await initializeStartup();
 
 // Check Node.js availability for Claude SDK subprocess
-await checkNodeAvailability();
+// TEMPORARILY DISABLED - causes hang in WSL due to execSync issue
+// await checkNodeAvailability();
+console.log('⚠️  Skipping Node.js check (WSL compatibility)');
 
 // Initialize default working directory
 const DEFAULT_WORKING_DIR = getDefaultWorkingDirectory();
