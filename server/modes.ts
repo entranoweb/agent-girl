@@ -49,6 +49,11 @@ const MODE_CONFIGS: Record<string, ModeConfig> = {
     name: 'Spark',
     description: 'Interactive brainstorming with research',
   },
+  'copywriting': {
+    id: 'copywriting',
+    name: 'Copywriting',
+    description: '14 frameworks from master copywriters',
+  },
 };
 
 const modePromptCache = new Map<string, string>();
