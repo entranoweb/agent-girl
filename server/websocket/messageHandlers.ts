@@ -616,10 +616,12 @@ Run bash commands with the understanding that this is your current working direc
       }],
     };
 
-    // Create timeout controller (10 minutes for all modes)
+    // Create timeout controller (15 minutes for intense-research, 10 minutes for others)
+    const timeoutMs = session.mode === 'intense-research' ? 900000 : 600000; // 15 or 10 minutes
+    const warningMs = session.mode === 'intense-research' ? 450000 : 300000; // 7.5 or 5 minutes
     const timeoutController = new TimeoutController({
-      timeoutMs: 600000, // 10 minutes
-      warningMs: 300000,  // 5 minutes
+      timeoutMs,
+      warningMs,
       onWarning: () => {
         console.log(`⚠️ [TIMEOUT] Warning: 5 minutes elapsed for session ${sessionId.toString().substring(0, 8)}`);
         // Send warning notification to client (use safeSend for WebSocket lifecycle safety)
@@ -634,7 +636,8 @@ Run bash commands with the understanding that this is your current working direc
         );
       },
       onTimeout: () => {
-        console.log(`🔴 [TIMEOUT] Hard timeout reached (10min) for session ${sessionId.toString().substring(0, 8)}, aborting session`);
+        const timeoutMinutes = session.mode === 'intense-research' ? 15 : 10;
+        console.log(`🔴 [TIMEOUT] Hard timeout reached (${timeoutMinutes}min) for session ${sessionId.toString().substring(0, 8)}, aborting session`);
 
         // Force abort the SDK subprocess
         const aborted = sessionStreamManager.abortSession(sessionId as string);
@@ -645,7 +648,7 @@ Run bash commands with the understanding that this is your current working direc
             sessionId as string,
             JSON.stringify({
               type: 'error',
-              message: 'Task timed out after 10 minutes. Please try breaking down your request into smaller steps.',
+              message: `Task timed out after ${timeoutMinutes} minutes. Please try breaking down your request into smaller steps.`,
               errorType: 'timeout',
               sessionId: sessionId,
             })
