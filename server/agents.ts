@@ -1020,7 +1020,7 @@ Prioritize authoritative sources: official docs, academic papers, reputable tech
 
 **DO NOT include your full research in your response - save it to the file only.**
 
-Your response must be ONLY the JSON (under 500 tokens). The file contains your detailed work.`
+Your response must be ONLY the JSON (under 500 tokens). The file contains your detailed work.`,
     tools: ['WebSearch', 'Write', 'Read', 'WebFetch'],
   },
 
