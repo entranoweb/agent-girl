@@ -312,14 +312,26 @@ Run bash commands with the understanding that this is your current working direc
     const estimatedTokens = Math.round(promptWordCount * 1.3);
     console.log(`📏 System prompt size: ${promptWordCount} words (~${estimatedTokens} tokens)`);
 
-    // Debug: Write full system prompt to temp file for inspection
-    const fs = await import('fs');
-    const debugPath = `/tmp/system-prompt-${session.mode || 'general'}-debug.txt`;
-    fs.writeFileSync(debugPath, systemPromptWithContext);
-    console.log(`📝 Full system prompt written to: ${debugPath}`);
+    // Debug: Write full system prompt to temp file for inspection (commented out for Windows)
+    // const fs = await import('fs');
+    // const debugPath = `/tmp/system-prompt-${session.mode || 'general'}-debug.txt`;
+    // fs.writeFileSync(debugPath, systemPromptWithContext);
+    // console.log(`📝 Full system prompt written to: ${debugPath}`);
 
     // Inject working directory context into all custom agent prompts
-    const agentsWithWorkingDir = injectWorkingDirIntoAgents(AGENT_REGISTRY, workingDir);
+    // IMPORTANT: Only pass agents needed for this mode to avoid Windows ENAMETOOLONG error
+    const agentsForMode = session.mode === 'general' ? 
+      {
+        'researcher-stateful-test': AGENT_REGISTRY['researcher-stateful-test'],
+        'code-reviewer': AGENT_REGISTRY['code-reviewer'],
+        'debugger': AGENT_REGISTRY['debugger']
+      } : session.mode === 'intense-research' ?
+      {
+        'deep-research-v2-orchestrator': AGENT_REGISTRY['deep-research-v2-orchestrator'],
+        'research-agent-stateful': AGENT_REGISTRY['research-agent-stateful'],
+        'synthesis-agent': AGENT_REGISTRY['synthesis-agent']
+      } : AGENT_REGISTRY;
+    const agentsWithWorkingDir = injectWorkingDirIntoAgents(agentsForMode, workingDir);
 
     // Capture stderr output for better error messages
     let stderrOutput = '';
