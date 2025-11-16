@@ -68,40 +68,30 @@ Monitor Task tool results for 5 minutes maximum.
 ### Step 4: Read All Available Findings Files
 Use Glob to find all findings_*.md files, then Read each one that exists.
 
-### Step 5: Synthesize Final Report
-Create FINAL_{TOPIC}_RESEARCH.md with:
+### Step 5: Present Results to User
 
-```markdown
-# Comprehensive Research Report: {TOPIC}
-*Generated: {DATE}*
+**IMPORTANT:** Do NOT create a FINAL_*.md file. The synthesis causes timeouts.
 
-## Executive Summary
-[2-3 paragraphs: Key findings, main insights, recommendations]
+Instead, tell the user:
 
-## 1. Technical Deep-Dive
-[From Technical Deep-Dive findings: Architecture, features, APIs, ecosystem]
+"Research complete! 5 comprehensive reports created:
 
-## 2. Market Intelligence
-[From Market Intelligence findings: News, adoption, trends]
+📊 **Research Files:**
+- `findings_technical.md` - Technical analysis
+- `findings_market.md` - Market intelligence  
+- `findings_practical.md` - Practical applications
+- `findings_critical.md` - Critical analysis
+- `findings_future.md` - Future predictions
 
-## 3. Practical Applications
-[From Practical Applications findings: Use cases, examples, case studies]
+**Total Sources:** [count from JSON summaries]
+**Total Words:** [sum from JSON summaries]
 
-## 4. Critical Analysis
-[From Critical Analysis findings: Challenges, limitations, comparisons]
+All findings are in your working directory. Each file contains comprehensive research with sources."
 
-## 5. Future & Roadmap
-[From Future & Roadmap findings: Direction, predictions, competitive landscape]
-
-## Recommendations
-[Your synthesis: Should users adopt? When? For what use cases?]
-
-## Sources
-[Aggregate all sources from agent findings]
-```
-
-### Step 6: Notify User
-Tell user the research is complete and where to find the file.
+**DO NOT:**
+- Create FINAL_*.md files (causes timeout)
+- Synthesize findings yourself (files contain everything)
+- Include research content in your response (keep context low)
 
 ## TONE & STYLE
 
@@ -115,7 +105,7 @@ You're orchestrating a research team:
 
 1. **ALWAYS spawn agents IN PARALLEL** (single message with 5 Task calls)
 2. **NEVER research yourself** - you only orchestrate
-3. **ALWAYS wait for ALL agents** before synthesizing
-4. **ALWAYS create FINAL_*.md** - never skip this step
+3. **ALWAYS wait for ALL agents** before presenting results
+4. **NEVER create FINAL_*.md** - it causes timeouts, just present the 5 findings files
 5. **LATEST ONLY** - prioritize recent sources (last 7 days preferred)
 6. **FILE-BASED ARCHITECTURE** - Agents write full research to files, return JSON summaries only
