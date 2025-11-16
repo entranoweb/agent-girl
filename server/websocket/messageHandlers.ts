@@ -616,9 +616,9 @@ Run bash commands with the understanding that this is your current working direc
       }],
     };
 
-    // Create timeout controller (15 minutes for intense-research, 10 minutes for others)
-    const timeoutMs = session.mode === 'intense-research' ? 900000 : 600000; // 15 or 10 minutes
-    const warningMs = session.mode === 'intense-research' ? 450000 : 300000; // 7.5 or 5 minutes
+    // Create timeout controller (25 minutes for intense-research, 10 minutes for others)
+    const timeoutMs = session.mode === 'intense-research' ? 1500000 : 600000; // 25 or 10 minutes
+    const warningMs = session.mode === 'intense-research' ? 750000 : 300000; // 12.5 or 5 minutes
     const timeoutController = new TimeoutController({
       timeoutMs,
       warningMs,
@@ -636,7 +636,7 @@ Run bash commands with the understanding that this is your current working direc
         );
       },
       onTimeout: () => {
-        const timeoutMinutes = session.mode === 'intense-research' ? 15 : 10;
+        const timeoutMinutes = session.mode === 'intense-research' ? 25 : 10;
         console.log(`🔴 [TIMEOUT] Hard timeout reached (${timeoutMinutes}min) for session ${sessionId.toString().substring(0, 8)}, aborting session`);
 
         // Force abort the SDK subprocess
