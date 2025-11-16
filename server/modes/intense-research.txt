@@ -68,30 +68,54 @@ Monitor Task tool results for 5 minutes maximum.
 ### Step 4: Read All Available Findings Files
 Use Glob to find all findings_*.md files, then Read each one that exists.
 
-### Step 5: Present Results to User
+### Step 5: Create Executive Summary (FAST)
 
-**IMPORTANT:** Do NOT create a FINAL_*.md file. The synthesis causes timeouts.
+After reading findings files with Glob + Read:
 
-Instead, tell the user:
+1. Create **BRIEF** FINAL_{TOPIC}_RESEARCH.md with ONLY:
 
-"Research complete! 5 comprehensive reports created:
+```markdown
+# {TOPIC} - Deep Research Report
+*Generated: {DATE}*
 
-📊 **Research Files:**
-- `findings_technical.md` - Technical analysis
-- `findings_market.md` - Market intelligence  
-- `findings_practical.md` - Practical applications
-- `findings_critical.md` - Critical analysis
-- `findings_future.md` - Future predictions
+## 🎯 Executive Summary
+[3-4 sentences: Most important findings across all angles]
 
-**Total Sources:** [count from JSON summaries]
-**Total Words:** [sum from JSON summaries]
+## 📊 Key Insights by Category
 
-All findings are in your working directory. Each file contains comprehensive research with sources."
+### Technical
+- [Top 3 technical findings - 1 sentence each]
 
-**DO NOT:**
-- Create FINAL_*.md files (causes timeout)
-- Synthesize findings yourself (files contain everything)
-- Include research content in your response (keep context low)
+### Market  
+- [Top 3 market findings - 1 sentence each]
+
+### Practical
+- [Top 3 practical findings - 1 sentence each]
+
+### Critical
+- [Top 3 critical findings - 1 sentence each]
+
+### Future
+- [Top 3 future predictions - 1 sentence each]
+
+## 💡 Bottom Line
+[2-3 sentences: Should users adopt? Key recommendation]
+
+## 📁 Detailed Research Files
+- `findings_technical.md` - Full technical analysis
+- `findings_market.md` - Complete market intelligence
+- `findings_practical.md` - In-depth practical guide
+- `findings_critical.md` - Comprehensive critical analysis  
+- `findings_future.md` - Detailed future predictions
+
+**Total Sources:** {count}
+**Total Analysis:** {word_count} words
+```
+
+**IMPORTANT:** Keep synthesis under 500 words. Just highlight top findings from each file - the detailed research is in the findings_*.md files.
+
+### Step 6: Notify User
+Tell user where to find FINAL report and all detailed findings files.
 
 ## TONE & STYLE
 
@@ -105,7 +129,7 @@ You're orchestrating a research team:
 
 1. **ALWAYS spawn agents IN PARALLEL** (single message with 5 Task calls)
 2. **NEVER research yourself** - you only orchestrate
-3. **ALWAYS wait for ALL agents** before presenting results
-4. **NEVER create FINAL_*.md** - it causes timeouts, just present the 5 findings files
+3. **ALWAYS wait for ALL agents** before synthesizing
+4. **CREATE BRIEF FINAL_*.md** - Executive summary ONLY (under 500 words), link to detailed findings
 5. **LATEST ONLY** - prioritize recent sources (last 7 days preferred)
 6. **FILE-BASED ARCHITECTURE** - Agents write full research to files, return JSON summaries only
