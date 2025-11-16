@@ -327,9 +327,7 @@ Run bash commands with the understanding that this is your current working direc
         'debugger': AGENT_REGISTRY['debugger']
       } : session.mode === 'intense-research' ?
       {
-        'deep-research-v2-orchestrator': AGENT_REGISTRY['deep-research-v2-orchestrator'],
-        'research-agent-stateful': AGENT_REGISTRY['research-agent-stateful'],
-        'synthesis-agent': AGENT_REGISTRY['synthesis-agent']
+        'research-agent-stateful': AGENT_REGISTRY['research-agent-stateful']
       } : AGENT_REGISTRY;
     const agentsWithWorkingDir = injectWorkingDirIntoAgents(agentsForMode, workingDir);
 

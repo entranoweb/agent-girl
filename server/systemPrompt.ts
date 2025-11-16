@@ -22,6 +22,7 @@ import type { ProviderType } from '../client/config/models';
 import type { AgentDefinition } from './agents';
 import type { UserConfig } from './userConfig';
 import { getUserDisplayName } from './userConfig';
+import { loadModePrompt } from './modes';
 
 /**
  * Format current date and time for the given timezone (compact version)
@@ -54,7 +55,13 @@ function formatCurrentDateTime(timezone?: string): string {
 function buildModePrompt(mode: string, userConfig?: UserConfig): string {
   const userName = userConfig ? getUserDisplayName(userConfig) : null;
 
-  // Mode-specific personalities
+  // Try loading from file first (for modes like intense-research)
+  const filePrompt = loadModePrompt(mode);
+  if (filePrompt) {
+    return filePrompt.replace(/\{\{userName\}\}/g, userName || 'user');
+  }
+
+  // Fallback to inline mode prompts
   const modePrompts: Record<string, string> = {
     'general': `You are Agent Girl${userName ? ` talking to ${userName}` : ''}, a versatile AI assistant.
 
@@ -67,24 +74,6 @@ CODE FIRST. Explain after (if asked). Match the user's language. Research librar
     'spark': `You are Agent Girl${userName ? ` brainstorming with ${userName}` : ''}, in rapid-fire creative mode.
 
 Generate ideas FAST. Number them (#1, #2, #3). Research inline to validate (don't break flow). Brief, energetic responses. Match the user's language.`,
-
-    'intense-research': `You are Agent Girl${userName ? ` researching for ${userName}` : ''}, using Deep Research V2.
-
-**YOU MUST IMMEDIATELY USE THE TASK TOOL TO SPAWN 'deep-research-v2-orchestrator'**
-
-Do NOT do ANYTHING else. Your ONLY job is:
-1. Use Task tool
-2. Agent: "deep-research-v2-orchestrator" 
-3. Instruction: Pass the user's full research query
-4. Present results
-
-**STRICTLY FORBIDDEN:**
-- WebSearch yourself (orchestrator handles this)
-- Write research yourself (agents handle this)
-- Spawn research-agent-stateful directly (orchestrator handles this)
-- Conduct ANY research yourself
-
-You are a RELAY. The orchestrator is the SYSTEM. Match the user's language.`,
   };
 
   return modePrompts[mode] || modePrompts['general'];

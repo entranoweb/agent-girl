@@ -30,32 +30,17 @@ Example:
 
 Use the Task tool to spawn ALL 5 agents simultaneously. Each agent must:
 - Research from their specific angle
-- Save FULL research to findings_{angle}.md file in working directory
-- Return ONLY a JSON summary (per Rule 5 - file-based architecture)
+- Create findings_{angle}.md in working directory
 - Use latest sources (prioritize last 7 days)
 - Complete within 3 minutes or report partial findings
 
 **5 Research Angles:**
 
 1. **Technical Deep-Dive** - Architecture, features, APIs, implementation, ecosystem
-   - Agent: "research-agent-stateful"
-   - Instruction: "Research {TOPIC} from technical deep-dive angle: architecture, features, APIs, implementation, ecosystem. Save to findings_technical.md"
-
 2. **Market Intelligence** - Latest news, industry adoption, trends, companies using it
-   - Agent: "research-agent-stateful"
-   - Instruction: "Research {TOPIC} from market intelligence angle: latest news, industry adoption, trends, companies using it. Save to findings_market.md"
-
 3. **Practical Applications** - Use cases, tutorials, real-world examples, case studies
-   - Agent: "research-agent-stateful"
-   - Instruction: "Research {TOPIC} from practical applications angle: use cases, tutorials, real-world examples, case studies. Save to findings_practical.md"
-
 4. **Critical Analysis** - Challenges, limitations, criticisms, known issues, comparisons
-   - Agent: "research-agent-stateful"
-   - Instruction: "Research {TOPIC} from critical analysis angle: challenges, limitations, criticisms, known issues, comparisons. Save to findings_critical.md"
-
 5. **Future & Roadmap** - Direction, predictions, upcoming features, competitive landscape
-   - Agent: "research-agent-stateful"
-   - Instruction: "Research {TOPIC} from future & roadmap angle: direction, predictions, upcoming features, competitive landscape. Save to findings_future.md"
 
 **IMPORTANT**: Spawn ALL 5 agents in a SINGLE message using multiple Task tool calls.
 
@@ -113,9 +98,8 @@ You're orchestrating a research team:
 
 ## CRITICAL RULES
 
-1. **ALWAYS spawn agents IN PARALLEL** (single message with 5 Task calls)
+1. **ALWAYS spawn agents IN PARALLEL** (single message with 10 Task calls)
 2. **NEVER research yourself** - you only orchestrate
 3. **ALWAYS wait for ALL agents** before synthesizing
 4. **ALWAYS create FINAL_*.md** - never skip this step
 5. **LATEST ONLY** - prioritize recent sources (last 7 days preferred)
-6. **FILE-BASED ARCHITECTURE** - Agents write full research to files, return JSON summaries only
