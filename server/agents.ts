@@ -27,6 +27,23 @@
  * This format matches the Claude Agent SDK's AgentDefinition interface.
  */
 
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+/**
+ * Load prompt from external file (for large copywriting agent prompts)
+ * Prevents E2BIG errors by loading prompts dynamically instead of inline
+ */
+function loadPromptFromFile(relativePath: string): string {
+  try {
+    const fullPath = join(__dirname, '..', relativePath);
+    return readFileSync(fullPath, 'utf-8');
+  } catch (error) {
+    console.error(`Failed to load prompt from ${relativePath}:`, error);
+    return `ERROR: Could not load prompt file. Please check that ${relativePath} exists.`;
+  }
+}
+
 /**
  * Agent definition matching the Claude Agent SDK interface
  * @see @anthropic-ai/claude-agent-sdk/sdk.d.ts
@@ -139,6 +156,16 @@ Be thorough, objective, specific. Explain WHY something passes or fails.`,
   // ============================================================================
   // DEEP RESEARCH V2 - FILE-BASED ARCHITECTURE
   // ============================================================================
+
+  // ============================================================================
+  // COPYWRITING FACTORY - MASTER ORCHESTRATOR SYSTEM
+  // ============================================================================
+
+  'copywriting': {
+    description: 'Master copywriting orchestrator with 14 specialized frameworks from master copywriters (Sabri Suby, Dan Kennedy, Gary Halbert, Chief Neefe)',
+    prompt: loadPromptFromFile('copywriting-agents/agents/copy-commander/prompt.md'),
+    tools: ['Read', 'Write', 'WebSearch', 'WebFetch', 'Task'],
+  },
 
   'research-agent-stateful': {
     description: 'Research specialist for gathering information from web and files, analyzing data, and creating comprehensive reports with file-based output',
