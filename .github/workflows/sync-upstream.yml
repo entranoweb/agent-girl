@@ -52,10 +52,18 @@ jobs:
       - name: Merge upstream changes
         if: steps.check.outputs.has_changes == 'true'
         run: |
-          # Try merge with our custom changes preserved
-          git merge upstream/master --no-edit --allow-unrelated-histories || {
-            echo "⚠️ Merge conflicts detected. Creating conflict resolution PR..."
-            exit 1
+          # Smart merge strategy: prefer ours for custom files
+          git merge upstream/master --no-edit --strategy-option=ours --allow-unrelated-histories || {
+            # If automatic merge fails, check if it's just agents.ts
+            if git diff --name-only --diff-filter=U | grep -q "server/agents.ts"; then
+              echo "⚠️ Conflict in agents.ts - using our version (has custom agents)"
+              git checkout --ours server/agents.ts
+              git add server/agents.ts
+              git commit --no-edit -m "merge: keep custom agents (research-agent-stateful, copywriting)"
+            else
+              echo "⚠️ Merge conflicts detected. Creating conflict resolution issue..."
+              exit 1
+            fi
           }
       
       - name: Push changes
@@ -97,8 +105,16 @@ jobs:
               ## Custom Features to Preserve:
               - Deep Research V2 (file-based architecture)
               - Per-agent timeout handling (10 min/agent)
+              - Copywriting Orchestrator (14 specialized frameworks)
+              - External prompt loading (copywriting-agents/ directory)
               - Source diversity requirements
               - 25-minute session timeout
+              
+              ## Critical Files:
+              - server/agents.ts (loadPromptFromFile + custom agents)
+              - copywriting-agents/ (ENTIRE directory must be preserved)
+              - server/modes/intense-research.txt
+              - server/websocket/messageHandlers.ts (timeout values)
               
               See \`CUSTOM_MODIFICATIONS.md\` for complete details.`,
               labels: ['sync-conflict', 'automated']

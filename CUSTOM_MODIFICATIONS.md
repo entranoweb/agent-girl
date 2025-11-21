@@ -41,7 +41,21 @@
 - Provides site-specific search strategies
 - Structured time management: 0-6min research, 6-9min write, 9-10min save+JSON
 
-### 4. Global Session Timeout (25 Minutes)
+### 4. Copywriting Orchestrator System (14 Specialized Frameworks)
+**Files:**
+- `server/agents.ts` - Prompt loader function + copywriting agent definition
+- `copywriting-agents/` - External prompt files for 14 specialized agents
+
+**Key Features:**
+- Master orchestrator (Copy Commander) with Task tool delegation
+- 14 specialized sub-agents: social, landing, video, research, reviewers
+- External prompt loading to prevent E2BIG errors
+- Frameworks: Sabri Suby, Dan Kennedy, Gary Halbert, Chief Neefe
+- Quality scoring system (100-point evaluation)
+
+**CRITICAL:** External prompts in `copywriting-agents/` directory must be preserved!
+
+### 5. Global Session Timeout (25 Minutes)
 **Location:** `server/websocket/messageHandlers.ts` lines 619-651
 
 **Changes:**
@@ -56,9 +70,20 @@
 
 #### `server/agents.ts`
 **Keep:** 
+- `loadPromptFromFile()` function (lines 30-45)
+- `copywriting` agent definition (lines 160-168)
 - Source Diversity Requirements section
-- research-agent-stateful agent definition
+- `research-agent-stateful` agent definition
 - Research Efficiency section
+
+**CRITICAL:** If upstream modified `agents.ts`, use this strategy:
+```bash
+# Use "ours" strategy to keep our version, then manually add upstream's new agents
+git checkout --ours server/agents.ts
+# Review upstream changes and add ONLY new agents (not removing ours)
+git show upstream/master:server/agents.ts > upstream-agents-temp.txt
+# Manually merge new upstream agents while preserving our custom agents
+```
 
 #### `server/modes/intense-research.txt`
 **Keep:** ENTIRE file - this is your custom mode
@@ -67,6 +92,10 @@
 **Keep:**
 - Custom timeout values for intense-research
 - All mode-specific timeout logic
+
+#### `copywriting-agents/` directory
+**Keep:** ENTIRE directory - external prompts for copywriting system
+**Action:** If deleted by sync, restore from backup branch
 
 ## Testing After Upstream Sync
 
@@ -89,6 +118,12 @@ npm run dev
 # 4. Check source diversity
 # Open findings files
 # Verify sources include: official docs, Reddit, HN, GitHub
+
+# 5. Test Copywriting System
+# Call copywriting agent: "Write me a LinkedIn post about AI"
+# Verify: Orchestrator analyzes and routes to appropriate sub-agent
+# Verify: Quality scores provided (100-point system)
+# Verify: No E2BIG errors (external prompts loading correctly)
 ```
 
 ## Backup Strategy
