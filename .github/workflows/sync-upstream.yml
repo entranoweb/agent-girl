@@ -1,0 +1,105 @@
+name: Sync Upstream Fork
+
+on:
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sunday at midnight
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      workflows: write  # CRITICAL: Required to update workflow files
+    
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/KenKaiii/agent-girl.git || true
+          git fetch upstream
+      
+      - name: Check for upstream changes
+        id: check
+        run: |
+          BEHIND=$(git rev-list --count HEAD..upstream/master)
+          echo "commits_behind=$BEHIND" >> $GITHUB_OUTPUT
+          if [ "$BEHIND" -gt 0 ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create backup branch
+        if: steps.check.outputs.has_changes == 'true'
+        run: |
+          BACKUP_BRANCH="backup-before-sync-$(date +%Y%m%d)"
+          git branch "$BACKUP_BRANCH"
+          git push origin "$BACKUP_BRANCH"
+          echo "Created backup branch: $BACKUP_BRANCH"
+      
+      - name: Merge upstream changes
+        if: steps.check.outputs.has_changes == 'true'
+        run: |
+          # Try merge with our custom changes preserved
+          git merge upstream/master --no-edit --allow-unrelated-histories || {
+            echo "⚠️ Merge conflicts detected. Creating conflict resolution PR..."
+            exit 1
+          }
+      
+      - name: Push changes
+        if: steps.check.outputs.has_changes == 'true'
+        run: |
+          git push origin master
+          echo "✅ Successfully synced ${{ steps.check.outputs.commits_behind }} commits from upstream"
+      
+      - name: Create issue on conflict
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '⚠️ Upstream Sync Failed - Manual Resolution Required',
+              body: `The automated upstream sync failed, likely due to merge conflicts.
+              
+              ## What to do:
+              
+              1. **Local sync (recommended):**
+              \`\`\`bash
+              git fetch upstream
+              git checkout master
+              git merge upstream/master
+              # Resolve conflicts manually
+              git push origin master
+              \`\`\`
+              
+              2. **Check CUSTOM_MODIFICATIONS.md** for merge conflict resolution guide
+              
+              3. **Recovery option:** If sync broke Deep Research V2, restore from backup:
+              \`\`\`bash
+              git reset --hard backup-before-sync-$(date +%Y%m%d)
+              git push -f origin master
+              \`\`\`
+              
+              ## Custom Features to Preserve:
+              - Deep Research V2 (file-based architecture)
+              - Per-agent timeout handling (10 min/agent)
+              - Source diversity requirements
+              - 25-minute session timeout
+              
+              See \`CUSTOM_MODIFICATIONS.md\` for complete details.`,
+              labels: ['sync-conflict', 'automated']
+            })

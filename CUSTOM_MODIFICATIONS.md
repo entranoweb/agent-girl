@@ -19,22 +19,36 @@
 - 25-minute timeout (vs 10 minutes default)
 - Full synthesis report creation (FINAL_*_RESEARCH.md)
 
-### 2. Source Diversity Requirements
+### 2. Per-Agent Timeout Handling (10 Minutes Per Agent)
+**Location:** 
+- `server/agents.ts` lines 1015-1025 (Research Efficiency section)
+- `server/agents.ts` lines 1027-1065 (File-based output with timeout responses)
+- `server/modes/intense-research.txt` line 36, lines 62-69
+
+**What it does:**
+- Each research agent has a HARD 10-minute timeout
+- Agent Girl waits max 12 minutes for all agents, then proceeds with available findings
+- Agents return partial/timeout status in JSON if they don't complete
+- Synthesis proceeds even if some agents fail/timeout
+- Prevents indefinite hangs when one agent gets stuck
+
+### 3. Source Diversity Requirements
 **Location:** `server/agents.ts` lines 990-1018
 
 **What it does:**
 - Explicitly requires researchers to search Reddit, HackerNews, GitHub issues
 - Adds community discussions alongside official docs
 - Provides site-specific search strategies
-- 8-minute efficiency guideline per agent
+- Structured time management: 0-6min research, 6-9min write, 9-10min save+JSON
 
-### 3. Timeout Modifications
+### 4. Global Session Timeout (25 Minutes)
 **Location:** `server/websocket/messageHandlers.ts` lines 619-651
 
 **Changes:**
-- intense-research mode: 25 minutes (1500000ms)
+- intense-research mode: 25 minutes global timeout (1500000ms)
 - Other modes: 10 minutes (600000ms)
 - Warning at 12.5 minutes for intense-research
+- Works with per-agent timeout: agents have 10min each, overall session has 25min max
 
 ## Merge Conflict Resolution Guide
 
@@ -64,10 +78,15 @@ npm run dev
 # Test query: "Latest AI developments 2025"
 # Verify: 5 findings_*.md files + FINAL_*.md created
 
-# 2. Check timeout
-# Should NOT timeout before 25 minutes
+# 2. Check per-agent timeout
+# Each agent should complete within 10 minutes
+# Agent Girl should proceed with synthesis after 12 minutes even if 1 agent times out
+# FINAL report should note any missing angles
 
-# 3. Check source diversity
+# 3. Check global timeout
+# Overall session should NOT timeout before 25 minutes
+
+# 4. Check source diversity
 # Open findings files
 # Verify sources include: official docs, Reddit, HN, GitHub
 ```

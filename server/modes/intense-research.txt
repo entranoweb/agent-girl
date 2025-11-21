@@ -33,40 +33,45 @@ Use the Task tool to spawn ALL 5 agents simultaneously. Each agent must:
 - Save FULL research to findings_{angle}.md file in working directory
 - Return ONLY a JSON summary (per Rule 5 - file-based architecture)
 - Use latest sources (prioritize last 7 days)
-- Complete within 3 minutes or report partial findings
+- **HARD TIMEOUT: 10 minutes per agent** - must complete or report partial findings
 
 **5 Research Angles:**
 
 1. **Technical Deep-Dive** - Architecture, features, APIs, implementation, ecosystem
    - Agent: "research-agent-stateful"
-   - Instruction: "Research {TOPIC} from technical deep-dive angle: architecture, features, APIs, implementation, ecosystem. Save to findings_technical.md"
+   - Instruction: "Research \"{TOPIC}\" from technical deep-dive angle: architecture, features, APIs, implementation, ecosystem. Save to findings_technical.md. HARD TIMEOUT: 10 minutes."
 
 2. **Market Intelligence** - Latest news, industry adoption, trends, companies using it
    - Agent: "research-agent-stateful"
-   - Instruction: "Research {TOPIC} from market intelligence angle: latest news, industry adoption, trends, companies using it. Save to findings_market.md"
+   - Instruction: "Research \"{TOPIC}\" from market intelligence angle: latest news, industry adoption, trends, companies using it. Save to findings_market.md. HARD TIMEOUT: 10 minutes."
 
 3. **Practical Applications** - Use cases, tutorials, real-world examples, case studies
    - Agent: "research-agent-stateful"
-   - Instruction: "Research {TOPIC} from practical applications angle: use cases, tutorials, real-world examples, case studies. Save to findings_practical.md"
+   - Instruction: "Research \"{TOPIC}\" from practical applications angle: use cases, tutorials, real-world examples, case studies. Save to findings_practical.md. HARD TIMEOUT: 10 minutes."
 
 4. **Critical Analysis** - Challenges, limitations, criticisms, known issues, comparisons
    - Agent: "research-agent-stateful"
-   - Instruction: "Research {TOPIC} from critical analysis angle: challenges, limitations, criticisms, known issues, comparisons. Save to findings_critical.md"
+   - Instruction: "Research \"{TOPIC}\" from critical analysis angle: challenges, limitations, criticisms, known issues, comparisons. Save to findings_critical.md. HARD TIMEOUT: 10 minutes."
 
 5. **Future & Roadmap** - Direction, predictions, upcoming features, competitive landscape
    - Agent: "research-agent-stateful"
-   - Instruction: "Research {TOPIC} from future & roadmap angle: direction, predictions, upcoming features, competitive landscape. Save to findings_future.md"
+   - Instruction: "Research \"{TOPIC}\" from future & roadmap angle: direction, predictions, upcoming features, competitive landscape. Save to findings_future.md. HARD TIMEOUT: 10 minutes."
 
 **IMPORTANT**: Spawn ALL 5 agents in a SINGLE message using multiple Task tool calls.
 
-### Step 3: Wait for Agents (Max 5 Minutes Total)
-Monitor Task tool results for 5 minutes maximum.
-- If ALL 5 complete: Proceed to Step 4
-- If SOME complete: Proceed with available findings, note missing angles in report
-- If NONE complete after 5min: Create report noting research timeout, try again with simpler prompts
+### Step 3: Wait for Agents (Max 12 Minutes Total)
+Monitor Task tool results. After spawning, wait 12 minutes for agents to complete:
+- Each agent has 10min timeout (enforced by agent instructions)
+- If ALL 5 complete within 12min: Proceed to Step 4
+- If SOME complete within 12min: Proceed with available findings, note missing angles in synthesis
+- If NONE complete after 12min: Check filesystem for partial findings_*.md files, proceed with what exists
+
+**CRITICAL**: DO NOT wait indefinitely. After 12 minutes from spawn, check filesystem with Glob for findings_*.md and proceed to synthesis with whatever is available.
 
 ### Step 4: Read All Available Findings Files
 Use Glob to find all findings_*.md files, then Read each one that exists.
+
+**IMPORTANT**: Even if fewer than 5 files exist, proceed with synthesis. Note which angles are missing in your final report.
 
 ### Step 5: Synthesize Final Report
 

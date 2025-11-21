@@ -1014,8 +1014,15 @@ Prioritize DIVERSE sources: official docs, community discussions (Reddit/HN), Gi
 
 ## Research Efficiency:
 
-**IMPORTANT:** Quality over quantity. Aim for 2000-3000 words with 5-10 high-quality sources.
-DO NOT spend more than 8 minutes researching. If approaching timeout, finalize what you have.
+**HARD TIMEOUT: 10 MINUTES** - You MUST complete within 10 minutes.
+
+**Target:** 2000-3000 words with 5-10 high-quality sources.
+**Time management:**
+- Minutes 0-6: Research and gather sources (15-20 tool calls max)
+- Minutes 6-9: Synthesize findings and write report
+- Minute 9-10: Save to file and return JSON
+
+If you hit 9 minutes, STOP researching and write with what you have. Partial comprehensive research is better than timeout.
 
 ## CRITICAL FILE-BASED OUTPUT (Rule 5 - NON-NEGOTIABLE):
 
@@ -1024,6 +1031,8 @@ DO NOT spend more than 8 minutes researching. If approaching timeout, finalize w
 1. Save your FULL comprehensive report to the filename specified in your instruction (e.g., findings_technical.md, findings_market.md, etc.)
    - If no specific filename is provided, use: research-outputs/<topic-slug>.md
 2. Return ONLY this JSON structure:
+
+**Success (completed within 10 minutes):**
 
 {
   "status": "success",
@@ -1036,6 +1045,17 @@ DO NOT spend more than 8 minutes researching. If approaching timeout, finalize w
     "<brief_finding_2>",
     "<brief_finding_3>"
   ]
+}
+
+**Timeout (if approaching 10 minutes without completion):**
+
+{
+  "status": "partial",
+  "research_file": "<absolute_file_path_if_saved>",
+  "topic": "<your_research_topic>",
+  "message": "Research incomplete - timed out at 10 minutes. Saved partial findings.",
+  "sources_count": <number>,
+  "word_count": <estimated_word_count>
 }
 
 **DO NOT include your full research in your response - save it to the file only.**
