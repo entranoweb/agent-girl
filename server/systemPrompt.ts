@@ -83,6 +83,9 @@ Generate ideas FAST. Number them (#1, #2, #3). Research inline to validate (don'
  * Inject working directory context into an agent definition
  */
 function injectWorkingDirIntoAgent(agent: AgentDefinition, workingDir: string): AgentDefinition {
+  if (!agent || !agent.prompt) {
+    return agent;
+  }
   return {
     ...agent,
     prompt: `${agent.prompt}

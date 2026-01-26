@@ -319,14 +319,12 @@ Run bash commands with the understanding that this is your current working direc
 
     // Inject working directory context into all custom agent prompts
     // IMPORTANT: Only pass agents needed for this mode to avoid Windows ENAMETOOLONG error
-    const agentsForMode = session.mode === 'general' ? 
-      {
-        'researcher-stateful-test': AGENT_REGISTRY['researcher-stateful-test'],
-        'code-reviewer': AGENT_REGISTRY['code-reviewer'],
-        'debugger': AGENT_REGISTRY['debugger']
-      } : session.mode === 'intense-research' ?
+    const agentsForMode = session.mode === 'intense-research' ? 
       {
         'research-agent-stateful': AGENT_REGISTRY['research-agent-stateful']
+      } : session.mode === 'copywriting' ?
+      {
+        'copywriting': AGENT_REGISTRY['copywriting']
       } : AGENT_REGISTRY;
     const agentsWithWorkingDir = injectWorkingDirIntoAgents(agentsForMode, workingDir);
 
