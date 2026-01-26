@@ -71,6 +71,14 @@ export const MCP_SERVERS_BY_PROVIDER: Record<ProviderType, Record<string, McpSer
         'Z_AI_MODE': 'ZAI',
       },
     },
+    // Web Reader MCP - fetches webpage content with structured data extraction
+    'web-reader': {
+      type: 'http',
+      url: 'https://api.z.ai/api/mcp/web_reader/mcp',
+      headers: {
+        'Authorization': `Bearer ${process.env.ZAI_API_KEY || ''}`,
+      },
+    },
   },
   'moonshot': {
     // Grep.app MCP - code search across public GitHub repositories
@@ -85,10 +93,11 @@ export const MCP_SERVERS_BY_PROVIDER: Record<ProviderType, Record<string, McpSer
  * Get MCP servers for a specific provider
  *
  * @param provider - The provider type
- * @param _modelId - Optional model ID for model-specific MCP server restrictions
+ * @param modelId - Optional model ID for model-specific MCP server restrictions
  */
 export function getMcpServers(provider: ProviderType, _modelId?: string): Record<string, McpServerConfig> {
   const servers = MCP_SERVERS_BY_PROVIDER[provider] || {};
+
   return servers;
 }
 
@@ -96,7 +105,7 @@ export function getMcpServers(provider: ProviderType, _modelId?: string): Record
  * Get allowed tools for a provider's MCP servers
  *
  * @param provider - The provider type
- * @param _modelId - Optional model ID for model-specific tool restrictions
+ * @param modelId - Optional model ID for model-specific tool restrictions
  */
 export function getAllowedMcpTools(provider: ProviderType, _modelId?: string): string[] {
   // Grep.app MCP tools - available to all providers
@@ -111,11 +120,13 @@ export function getAllowedMcpTools(provider: ProviderType, _modelId?: string): s
   }
 
   if (provider === 'z-ai') {
+    // All Z.AI/GLM models use the same MCP tools
     return [
       ...grepTools,
       'mcp__web-search-prime__search',
       'mcp__zai-mcp-server__image_analysis',
       'mcp__zai-mcp-server__video_analysis',
+      'mcp__web-reader__webReader',
     ];
   }
 

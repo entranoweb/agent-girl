@@ -64,7 +64,7 @@ export const AVAILABLE_MODELS: ModelConfig[] = [
   },
   {
     id: 'glm-4.7',
-    name: 'GLM 4.7',
+    name: 'GLM-4.7',
     description: 'Z.AI\'s flagship model for powerful reasoning and coding',
     apiModelId: 'glm-4.7',
     provider: 'z-ai',

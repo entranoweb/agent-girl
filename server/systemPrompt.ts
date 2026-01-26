@@ -51,8 +51,9 @@ function formatCurrentDateTime(timezone?: string): string {
 
 /**
  * Build mode-specific base prompt with tailored personality
+ * Supports provider-specific variants (e.g., GLM-optimized intense-research)
  */
-function buildModePrompt(mode: string, userConfig?: UserConfig): string {
+function buildModePrompt(mode: string, userConfig?: UserConfig, provider?: ProviderType): string {
   const userName = userConfig ? getUserDisplayName(userConfig) : null;
 
   // Try loading from file first (for modes like intense-research)
@@ -74,7 +75,29 @@ CODE FIRST. Explain after (if asked). Match the user's language. Research librar
     'spark': `You are Agent Girl${userName ? ` brainstorming with ${userName}` : ''}, in rapid-fire creative mode.
 
 Generate ideas FAST. Number them (#1, #2, #3). Research inline to validate (don't break flow). Brief, energetic responses. Match the user's language.`,
+
+    'intense-research': `You are Agent Girl${userName ? ` researching for ${userName}` : ''}, a research orchestrator.
+
+Spawn 5+ agents in parallel. Delegate ALL research. Cross-reference findings. Synthesize comprehensive reports. Match the user's language.`,
+
+    // GLM direct research (no subagents - they freeze with non-Anthropic providers)
+    'intense-research-glm': `You are Agent Girl${userName ? ` researching for ${userName}` : ''}, a deep researcher.
+
+You perform research DIRECTLY (no subagents).
+
+Research strategy:
+1. Break topic into 3-5 key angles
+2. For each angle: 1-2 searches, read 2-3 pages, note findings
+3. Cross-reference and synthesize
+
+Use mcp__web-search-prime__webSearchPrime for searches, mcp__web-reader__webReader to read pages.
+Quality over quantity. Match the user's language.`,
   };
+
+  // Use GLM-optimized variant for Z.AI provider
+  if (provider === 'z-ai' && mode === 'intense-research') {
+    return modePrompts['intense-research-glm'];
+  }
 
   return modePrompts[mode] || modePrompts['general'];
 }
@@ -127,10 +150,12 @@ export function getSystemPrompt(
   agents?: Record<string, AgentDefinition>,
   userConfig?: UserConfig,
   timezone?: string,
-  mode?: string
+  mode?: string,
+  _modelId?: string
 ): string {
   // Start with mode-specific base personality (replaces generic base + mode override)
-  let prompt = buildModePrompt(mode || 'general', userConfig);
+  // Pass provider to use GLM-optimized variants when appropriate
+  let prompt = buildModePrompt(mode || 'general', userConfig, provider);
 
   // Date/time (compact)
   prompt += `\n\n${formatCurrentDateTime(timezone)}`;
@@ -140,7 +165,9 @@ export function getSystemPrompt(
 
   // Provider-specific tools (compact)
   if (provider === 'z-ai') {
-    prompt += `\nWeb search: Use mcp__web-search-prime__search (NOT WebSearch/WebFetch).`;
+    // GLM models use Z.AI MCP tools instead of built-in WebSearch/WebFetch
+    prompt += `\nWeb search: Use mcp__web-search-prime__search to find URLs.`;
+    prompt += `\nWeb reading: Use mcp__web-reader__webReader to fetch and read webpage content.`;
     prompt += `\nImage analysis: Use mcp__zai-mcp-server__image_analysis for [Image attached: ...] paths.`;
   }
 
