@@ -83,6 +83,13 @@ export const AVAILABLE_MODELS: ModelConfig[] = [
     apiModelId: 'kimi-k2-thinking-turbo',
     provider: 'moonshot',
   },
+  {
+    id: 'kimi-k2.5',
+    name: 'Kimi K2.5',
+    description: 'Native multimodal with Agent Swarm - visual coding, video understanding, 4.5x faster execution',
+    apiModelId: 'kimi-k2.5',
+    provider: 'moonshot',
+  },
 ];
 
 /**
