@@ -404,6 +404,35 @@ Run bash commands with the understanding that this is your current working direc
       queryOptions.maxThinkingTokens = thinkingTokensValue;
     }
 
+    // K2.5-specific parameter handling: thinking mode and max_tokens constraints
+    if (apiModelId === 'kimi-k2.5') {
+      // K2.5 uses structured thinking mode parameter
+      // Default: enabled, can be disabled for instant responses
+      const thinkingMode = (data.thinkingMode as string | undefined) || 'enabled';
+      queryOptions.thinking = {
+        type: thinkingMode as 'enabled' | 'disabled',
+      };
+
+      // CRITICAL K2.5 CONSTRAINT: When thinking disabled AND tools present
+      // max_tokens CANNOT be "auto" or "none" - must be explicit value
+      if (thinkingMode === 'disabled' && (agentsWithWorkingDir && Object.keys(agentsWithWorkingDir).length > 0)) {
+        // Default to 4096 if tools are used with disabled thinking
+        queryOptions.max_tokens = queryOptions.max_tokens || 4096;
+        console.log(`⚠️  K2.5 tool mode: Set max_tokens to ${queryOptions.max_tokens} for disabled thinking mode`);
+      }
+
+      // K2.5 penalty parameters (only in certain modes)
+      // presence_penalty and frequency_penalty: 0-2 range, default 0
+      if (typeof (data as Record<string, unknown>).presencePenalty === 'number') {
+        queryOptions.presence_penalty = Math.max(0, Math.min(2, (data as Record<string, unknown>).presencePenalty as number));
+      }
+      if (typeof (data as Record<string, unknown>).frequencyPenalty === 'number') {
+        queryOptions.frequency_penalty = Math.max(0, Math.min(2, (data as Record<string, unknown>).frequencyPenalty as number));
+      }
+
+      console.log(`🧠 K2.5 Configuration: thinking=${thinkingMode}, max_tokens=${queryOptions.max_tokens || 'default (infinite)'}`);
+    }
+
     // SDK automatically uses its bundled CLI at @anthropic-ai/claude-agent-sdk/cli.js
     // No need to specify pathToClaudeCodeExecutable - the SDK handles this internally
 
